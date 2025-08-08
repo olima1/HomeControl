@@ -156,7 +156,7 @@
         async function deleteItem(itemId) {
             if (!confirm("Tem certeza que deseja excluir este item?")) return;
             try {
-                const response = await fetch(`/api/shopping/delete-item?itemId=${itemId}`, {
+                const response = await fetch(`/api/shopping/delete-items?itemId=${itemId}`, {
                     method: "DELETE"
                 });
 
