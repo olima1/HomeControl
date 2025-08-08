@@ -9,7 +9,7 @@
         .task-list { list-style: none; padding: 0; }
         .task-list li { padding: 1em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
         .task-list li.completed { text-decoration: line-through; color: #888; }
-        input[type="text"], input[type="date"] { padding: 0.5em; margin-right: 1em; }
+        input[type="text"], input[type="date"], select { padding: 0.5em; margin-right: 1em; }
         button { padding: 0.5em 1em; cursor: pointer; }
         .create-form { display: flex; align-items: center; }
         .create-form > * { margin-right: 1em; }
@@ -26,7 +26,7 @@
         <form id="createTaskForm" class="create-form">
             <input type="text" id="taskName" placeholder="Nome da Tarefa" required>
             <input type="date" id="taskDueDate">
-            <input type="text" id="taskAssignee" placeholder="Concluída por">
+            <select id="taskAssigneeSelect"></select>
             <button type="submit">Criar</button>
         </form>
     </div>
@@ -39,11 +39,15 @@
     <div id="message" class="message hidden"></div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", fetchTasks);
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchTasks();
+            loadUsersDropdown();
+        });
 
         const createTaskForm = document.getElementById("createTaskForm");
         const taskList = document.getElementById("taskList");
         const messageElement = document.getElementById("message");
+        const taskAssigneeSelect = document.getElementById("taskAssigneeSelect");
 
         async function fetchTasks() {
             try {
@@ -56,6 +60,27 @@
                 }
             } catch (error) {
                 showMessage("Erro de conexão com a API.", "error");
+            }
+        }
+
+        // NOVA FUNÇÃO PARA CARREGAR A LISTA SUSPENSA
+        async function loadUsersDropdown() {
+            try {
+                const response = await fetch("/api/users");
+                if (response.ok) {
+                    const { users } = await response.json();
+                    taskAssigneeSelect.innerHTML = "";
+                    users.forEach(username => {
+                        const option = document.createElement("option");
+                        option.value = username;
+                        option.textContent = username;
+                        taskAssigneeSelect.appendChild(option);
+                    });
+                } else {
+                    showMessage("Erro ao carregar a lista de usuários.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão ao carregar usuários.", "error");
             }
         }
 
@@ -89,7 +114,8 @@
             event.preventDefault();
             const name = document.getElementById("taskName").value;
             const dueDate = document.getElementById("taskDueDate").value;
-            const assignee = document.getElementById("taskAssignee").value;
+            // Pega o valor do elemento select
+            const assignee = taskAssigneeSelect.value; 
 
             try {
                 const response = await fetch("/api/create-task", {
@@ -100,7 +126,7 @@
 
                 if (response.ok) {
                     createTaskForm.reset();
-                    fetchTasks(); // Recarrega a lista de tarefas
+                    fetchTasks();
                     showMessage("Tarefa criada com sucesso!", "success");
                 } else {
                     const error = await response.json();

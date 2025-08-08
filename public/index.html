@@ -1,134 +1,175 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Cadastro e Login</title>
-    <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2em auto; padding: 1em; }
-        .form-container { margin-top: 1em; padding: 1em; border: 1px solid #ccc; border-radius: 4px; }
-        input { display: block; width: 100%; margin-bottom: 1em; padding: 0.5em; box-sizing: border-box; }
-        button { padding: 0.75em 1.5em; cursor: pointer; margin-right: 0.5em; }
-        pre { background: #eee; padding: 1em; border-radius: 4px; white-space: pre-wrap; }
-        .hidden { display: none; }
-        .success { color: green; }
-        .error { color: red; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Cadastro e Login</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 2em auto;
+      padding: 1em;
+    }
+
+    .form-container {
+      margin-top: 1em;
+      padding: 1em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    input {
+      display: block;
+      width: 100%;
+      margin-bottom: 1em;
+      padding: 0.5em;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 0.75em 1.5em;
+      cursor: pointer;
+      margin-right: 0.5em;
+    }
+
+    pre {
+      background: #eee;
+      padding: 1em;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
 </head>
+
 <body>
-    <h1>Cadastro e Login</h1>
+  <h1>Cadastro e Login</h1>
 
-    <button id="showCadastro">Mostrar Cadastro</button>
-    <button id="showLogin">Mostrar Login</button>
+  <button id="showCadastro">Mostrar Cadastro</button>
+  <button id="showLogin">Mostrar Login</button>
 
-    <div id="cadastroFormContainer" class="form-container">
-        <h2>Cadastro de Usuário</h2>
-        <form id="cadastroForm">
-            <label for="cadastro-username">Nome de Usuário:</label>
-            <input type="text" id="cadastro-username" placeholder="Digite o nome de usuário">
-            <label for="cadastro-email">E-mail:</label>
-            <input type="email" id="cadastro-email" placeholder="Digite o e-mail">
-            <label for="cadastro-password">Senha:</label>
-            <input type="password" id="cadastro-password" placeholder="Digite a senha">
-            <button type="submit">Cadastrar</button>
-        </form>
-    </div>
+  <div id="cadastroFormContainer" class="form-container">
+    <h2>Cadastro de Usuário</h2>
+    <form id="cadastroForm">
+      <label for="cadastro-username">Nome de Usuário:</label>
+      <input type="text" id="cadastro-username" placeholder="Digite o nome de usuário">
+      <label for="cadastro-email">E-mail:</label>
+      <input type="email" id="cadastro-email" placeholder="Digite o e-mail">
+      <label for="cadastro-password">Senha:</label>
+      <input type="password" id="cadastro-password" placeholder="Digite a senha">
+      <button type="submit">Cadastrar</button>
+    </form>
+  </div>
 
-    <div id="loginFormContainer" class="form-container hidden">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <label for="login-username">Nome de Usuário:</label>
-            <input type="text" id="login-username" placeholder="Digite o nome de usuário">
-            <label for="login-password">Senha:</label>
-            <input type="password" id="login-password" placeholder="Digite a senha">
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
+  <div id="loginFormContainer" class="form-container hidden">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="login-username">Nome de Usuário:</label>
+      <input type="text" id="login-username" placeholder="Digite o nome de usuário">
+      <label for="login-password">Senha:</label>
+      <input type="password" id="login-password" placeholder="Digite a senha">
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
 
-    <pre id="resposta"></pre>
+  <pre id="resposta"></pre>
 
-    <script>
-        const cadastroForm = document.getElementById("cadastroForm");
-        const loginForm = document.getElementById("loginForm");
-        const respostaElement = document.getElementById("resposta");
+  <script>
+    const cadastroForm = document.getElementById("cadastroForm");
+    const loginForm = document.getElementById("loginForm");
+    const respostaElement = document.getElementById("resposta");
 
-        document.getElementById("showCadastro").addEventListener("click", () => {
-            document.getElementById("cadastroFormContainer").classList.remove("hidden");
-            document.getElementById("loginFormContainer").classList.add("hidden");
+    document.getElementById("showCadastro").addEventListener("click", () => {
+      document.getElementById("cadastroFormContainer").classList.remove("hidden");
+      document.getElementById("loginFormContainer").classList.add("hidden");
+    });
+
+    document.getElementById("showLogin").addEventListener("click", () => {
+      document.getElementById("cadastroFormContainer").classList.add("hidden");
+      document.getElementById("loginFormContainer").classList.remove("hidden");
+    });
+
+    // Evento de submit do formulário de cadastro
+    cadastroForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const username = document.getElementById("cadastro-username").value.trim();
+      const email = document.getElementById("cadastro-email").value.trim();
+      const password = document.getElementById("cadastro-password").value.trim();
+
+      if (!username || !email || !password) {
+        respostaElement.textContent = "Preencha todos os campos.";
+        return;
+      }
+
+      respostaElement.textContent = "Cadastrando...";
+      try {
+        const resposta = await fetch("/api/cadastro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password })
         });
+        const dados = await resposta.json();
+        if (resposta.ok) {
+          respostaElement.textContent = `Sucesso: ${dados.message}`;
+          respostaElement.className = "success";
+        } else {
+          respostaElement.textContent = `Erro: ${dados.error}`;
+          respostaElement.className = "error";
+        }
+      } catch (erro) {
+        respostaElement.textContent = "Erro de conexão: " + erro;
+        respostaElement.className = "error";
+      }
+    });
 
-        document.getElementById("showLogin").addEventListener("click", () => {
-            document.getElementById("cadastroFormContainer").classList.add("hidden");
-            document.getElementById("loginFormContainer").classList.remove("hidden");
+    // Evento de submit do formulário de login
+    loginForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      const username = document.getElementById("login-username").value.trim();
+      const password = document.getElementById("login-password").value.trim();
+
+      if (!username || !password) {
+        respostaElement.textContent = "Preencha todos os campos.";
+        return;
+      }
+
+      respostaElement.textContent = "Autenticando...";
+      try {
+        const resposta = await fetch("/api/login", {
+          method: "POST", // <-- Método POST é crucial aqui
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
         });
+        const dados = await resposta.json();
+        if (resposta.ok) {
+          respostaElement.textContent = `Sucesso: ${dados.message}`;
+          respostaElement.className = "success";
 
-        // Evento de submit do formulário de cadastro
-        cadastroForm.addEventListener("submit", async function(event) {
-            event.preventDefault();
-            const username = document.getElementById("cadastro-username").value.trim();
-            const email = document.getElementById("cadastro-email").value.trim();
-            const password = document.getElementById("cadastro-password").value.trim();
-
-            if (!username || !email || !password) {
-                respostaElement.textContent = "Preencha todos os campos.";
-                return;
-            }
-
-            respostaElement.textContent = "Cadastrando...";
-            try {
-                const resposta = await fetch("/api/cadastro", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, email, password })
-                });
-                const dados = await resposta.json();
-                if (resposta.ok) {
-                    respostaElement.textContent = `Sucesso: ${dados.message}`;
-                    respostaElement.className = "success";
-                } else {
-                    respostaElement.textContent = `Erro: ${dados.error}`;
-                    respostaElement.className = "error";
-                }
-            } catch (erro) {
-                respostaElement.textContent = "Erro de conexão: " + erro;
-                respostaElement.className = "error";
-            }
-        });
-
-        // Evento de submit do formulário de login
-        loginForm.addEventListener("submit", async function(event) {
-            event.preventDefault();
-            const username = document.getElementById("login-username").value.trim();
-            const password = document.getElementById("login-password").value.trim();
-
-            if (!username || !password) {
-                respostaElement.textContent = "Preencha todos os campos.";
-                return;
-            }
-
-            respostaElement.textContent = "Autenticando...";
-            try {
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, password })
-                });
-                const dados = await resposta.json();
-                if (resposta.ok) {
-                    respostaElement.textContent = `Sucesso: ${dados.message}`;
-                    respostaElement.className = "success";
-                    
-                    if (dados.redirectUrl) {
-                        window.location.href = dados.redirectUrl;
-                    }
-                } else {
-                    respostaElement.textContent = `Erro: ${dados.error}`;
-                    respostaElement.className = "error";
-                }
-            } catch (erro) {
-                respostaElement.textContent = "Erro de conexão: " + erro;
-                respostaElement.className = "error";
-            }
-        });
-    </script>
+          if (dados.redirectUrl) {
+            window.location.href = dados.redirectUrl;
+          }
+        } else {
+          respostaElement.textContent = `Erro: ${dados.error}`;
+          respostaElement.className = "error";
+        }
+      } catch (erro) {
+        respostaElement.textContent = "Erro de conexão: " + erro;
+        respostaElement.className = "error";
+      }
+    });
+  </script>
 </body>
+
 </html>
