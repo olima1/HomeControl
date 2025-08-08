@@ -6,10 +6,11 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Método não permitido' });
     }
 
-    const { username, password } = req.body;
+    // Agora, a API espera o email também
+    const { username, email, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).json({ error: 'Nome de usuário e senha são obrigatórios.' });
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'Nome de usuário, e-mail e senha são obrigatórios.' });
     }
 
     const client = new Client({
@@ -20,19 +21,18 @@ export default async function handler(req, res) {
     try {
         await client.connect();
 
-        // Verifica se o usuário já existe para evitar duplicatas
-        const checkUser = await client.query('SELECT * FROM users WHERE username = $1', [username]);
+        // Verifica se o usuário ou e-mail já existe
+        const checkUser = await client.query('SELECT * FROM users WHERE username = $1 OR email = $2', [username, email]);
         if (checkUser.rows.length > 0) {
             await client.end();
-            return res.status(409).json({ error: 'Nome de usuário já existe.' });
+            return res.status(409).json({ error: 'Nome de usuário ou e-mail já existe.' });
         }
 
-        // Gera o hash da senha antes de salvar no banco
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Insere o novo usuário na tabela
-        await client.query('INSERT INTO users (username, password_hash) VALUES ($1, $2)', [username, hashedPassword]);
+        // Insere o novo usuário, incluindo o e-mail
+        await client.query('INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)', [username, email, hashedPassword]);
         
         await client.end();
 

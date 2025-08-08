@@ -25,6 +25,8 @@
         <form id="cadastroForm">
             <label for="cadastro-username">Nome de Usuário:</label>
             <input type="text" id="cadastro-username" placeholder="Digite o nome de usuário">
+            <label for="cadastro-email">E-mail:</label>
+            <input type="email" id="cadastro-email" placeholder="Digite o e-mail">
             <label for="cadastro-password">Senha:</label>
             <input type="password" id="cadastro-password" placeholder="Digite a senha">
             <button type="submit">Cadastrar</button>
@@ -44,91 +46,89 @@
 
     <pre id="resposta"></pre>
 
-  <script>
-    const cadastroForm = document.getElementById("cadastroForm");
-    const loginForm = document.getElementById("loginForm");
-    const respostaElement = document.getElementById("resposta");
+    <script>
+        const cadastroForm = document.getElementById("cadastroForm");
+        const loginForm = document.getElementById("loginForm");
+        const respostaElement = document.getElementById("resposta");
 
-    // Funções para alternar entre os formulários
-    document.getElementById("showCadastro").addEventListener("click", () => {
-        document.getElementById("cadastroFormContainer").classList.remove("hidden");
-        document.getElementById("loginFormContainer").classList.add("hidden");
-    });
+        document.getElementById("showCadastro").addEventListener("click", () => {
+            document.getElementById("cadastroFormContainer").classList.remove("hidden");
+            document.getElementById("loginFormContainer").classList.add("hidden");
+        });
 
-    document.getElementById("showLogin").addEventListener("click", () => {
-        document.getElementById("cadastroFormContainer").classList.add("hidden");
-        document.getElementById("loginFormContainer").classList.remove("hidden");
-    });
+        document.getElementById("showLogin").addEventListener("click", () => {
+            document.getElementById("cadastroFormContainer").classList.add("hidden");
+            document.getElementById("loginFormContainer").classList.remove("hidden");
+        });
 
-    // Evento de submit do formulário de cadastro
-    cadastroForm.addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const username = document.getElementById("cadastro-username").value.trim();
-        const password = document.getElementById("cadastro-password").value.trim();
+        // Evento de submit do formulário de cadastro
+        cadastroForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const username = document.getElementById("cadastro-username").value.trim();
+            const email = document.getElementById("cadastro-email").value.trim();
+            const password = document.getElementById("cadastro-password").value.trim();
 
-        if (!username || !password) {
-            respostaElement.textContent = "Preencha todos os campos.";
-            return;
-        }
-
-        respostaElement.textContent = "Cadastrando...";
-        try {
-            const resposta = await fetch("/api/cadastro", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            });
-            const dados = await resposta.json();
-            if (resposta.ok) {
-                respostaElement.textContent = `Sucesso: ${dados.message}`;
-                respostaElement.className = "success";
-            } else {
-                respostaElement.textContent = `Erro: ${dados.error}`;
-                respostaElement.className = "error";
+            if (!username || !email || !password) {
+                respostaElement.textContent = "Preencha todos os campos.";
+                return;
             }
-        } catch (erro) {
-            respostaElement.textContent = "Erro de conexão: " + erro;
-            respostaElement.className = "error";
-        }
-    });
 
-    // Evento de submit do formulário de login
-    loginForm.addEventListener("submit", async function(event) {
-        event.preventDefault();
-        const username = document.getElementById("login-username").value.trim();
-        const password = document.getElementById("login-password").value.trim();
-
-        if (!username || !password) {
-            respostaElement.textContent = "Preencha todos os campos.";
-            return;
-        }
-
-        respostaElement.textContent = "Autenticando...";
-        try {
-            // AQUI ESTÁ O BLOCO CORRETO COM METHOD, HEADERS E BODY
-            const resposta = await fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            });
-            const dados = await resposta.json();
-            if (resposta.ok) {
-                respostaElement.textContent = `Sucesso: ${dados.message}`;
-                respostaElement.className = "success";
-                
-                // REDIRECIONAMENTO!
-                if (dados.redirectUrl) {
-                    window.location.href = dados.redirectUrl;
+            respostaElement.textContent = "Cadastrando...";
+            try {
+                const resposta = await fetch("/api/cadastro", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const dados = await resposta.json();
+                if (resposta.ok) {
+                    respostaElement.textContent = `Sucesso: ${dados.message}`;
+                    respostaElement.className = "success";
+                } else {
+                    respostaElement.textContent = `Erro: ${dados.error}`;
+                    respostaElement.className = "error";
                 }
-            } else {
-                respostaElement.textContent = `Erro: ${dados.error}`;
+            } catch (erro) {
+                respostaElement.textContent = "Erro de conexão: " + erro;
                 respostaElement.className = "error";
             }
-        } catch (erro) {
-            respostaElement.textContent = "Erro de conexão: " + erro;
-            respostaElement.className = "error";
-        }
-    });
-</script>
+        });
+
+        // Evento de submit do formulário de login
+        loginForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const username = document.getElementById("login-username").value.trim();
+            const password = document.getElementById("login-password").value.trim();
+
+            if (!username || !password) {
+                respostaElement.textContent = "Preencha todos os campos.";
+                return;
+            }
+
+            respostaElement.textContent = "Autenticando...";
+            try {
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+                const dados = await resposta.json();
+                if (resposta.ok) {
+                    respostaElement.textContent = `Sucesso: ${dados.message}`;
+                    respostaElement.className = "success";
+                    
+                    if (dados.redirectUrl) {
+                        window.location.href = dados.redirectUrl;
+                    }
+                } else {
+                    respostaElement.textContent = `Erro: ${dados.error}`;
+                    respostaElement.className = "error";
+                }
+            } catch (erro) {
+                respostaElement.textContent = "Erro de conexão: " + erro;
+                respostaElement.className = "error";
+            }
+        });
+    </script>
 </body>
 </html>
