@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Compras Compartilhada</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 1em; }
+        .container { margin-bottom: 2em; }
+        .shopping-list { list-style: none; padding: 0; }
+        .shopping-list li { padding: 1em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        input[type="text"] { padding: 0.5em; margin-right: 1em; }
+        button { padding: 0.5em 1em; cursor: pointer; }
+        .create-form { display: flex; align-items: center; }
+        .create-form > * { margin-right: 1em; }
+        .message { padding: 1em; border-radius: 4px; margin-top: 1em; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Lista de Compras Compartilhada</h1>
+
+    <div class="container">
+        <h2>Adicionar Novo Item</h2>
+        <form id="createItemForm" class="create-form">
+            <input type="text" id="itemName" placeholder="Item" required>
+            <input type="text" id="quantity" placeholder="Quantidade (opcional)">
+            <button type="submit">Adicionar</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Itens da Lista</h2>
+        <ul id="shoppingList" class="shopping-list"></ul>
+    </div>
+    
+    <div id="message" class="message hidden"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", fetchShoppingList);
+
+        const createItemForm = document.getElementById("createItemForm");
+        const shoppingList = document.getElementById("shoppingList");
+        const messageElement = document.getElementById("message");
+
+        async function fetchShoppingList() {
+            try {
+                const response = await fetch("/api/shopping/list-items");
+                if (response.ok) {
+                    const items = await response.json();
+                    renderShoppingList(items);
+                } else {
+                    showMessage("Erro ao carregar a lista de compras.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        }
+
+        function renderShoppingList(items) {
+            shoppingList.innerHTML = "";
+            items.forEach(item => {
+                const li = document.createElement("li");
+                
+                const quantityText = item.quantity ? ` (${item.quantity})` : '';
+
+                li.innerHTML = `
+                    <span>${item.item_name}${quantityText}</span>
+                    <div>
+                        <button onclick="deleteItem(${item.id})">Excluir</button>
+                    </div>
+                `;
+                shoppingList.appendChild(li);
+            });
+        }
+
+        createItemForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const itemName = document.getElementById("itemName").value;
+            const quantity = document.getElementById("quantity").value;
+
+            try {
+                const response = await fetch("/api/shopping/add-item", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ item_name: itemName, quantity: quantity })
+                });
+
+                if (response.ok) {
+                    createItemForm.reset();
+                    fetchShoppingList();
+                    showMessage("Item adicionado com sucesso!", "success");
+                } else {
+                    const error = await response.json();
+                    showMessage(`Erro ao adicionar item: ${error.error}`, "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        });
+
+        async function deleteItem(itemId) {
+            if (!confirm("Tem certeza que deseja excluir este item?")) return;
+            try {
+                const response = await fetch(`/api/shopping/delete-item?itemId=${itemId}`, {
+                    method: "DELETE"
+                });
+
+                if (response.ok) {
+                    fetchShoppingList();
+                    showMessage("Item excluído com sucesso!", "success");
+                } else {
+                    showMessage("Erro ao excluir item.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão.", "error");
+            }
+        }
+        
+        function showMessage(text, type) {
+            messageElement.textContent = text;
+            messageElement.className = `message ${type}`;
+            setTimeout(() => {
+                messageElement.classList.add("hidden");
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
