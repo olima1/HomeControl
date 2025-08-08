@@ -1,27 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Formulário</title>
+  <title>Salvar no Banco</title>
 </head>
 <body>
-  <h1>Cadastro</h1>
-  <form id="meuForm">
-    <input type="text" id="nome" placeholder="Seu nome" required>
-    <button type="submit">Enviar</button>
-  </form>
+  <h1>Cadastro de Usuário</h1>
+
+  <input type="text" id="nome" placeholder="Digite o nome">
+  <button onclick="salvar()">Salvar</button>
+
+  <pre id="resposta"></pre>
 
   <script>
-    document.getElementById("meuForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const nome = document.getElementById("nome").value;
-      await fetch("/api/salvar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome })
-      });
-      alert("Enviado!");
-    });
+    async function salvar() {
+      const nome = document.getElementById("nome").value.trim();
+      if (!nome) {
+        alert("Digite um nome antes de salvar.");
+        return;
+      }
+
+      try {
+        const resposta = await fetch("/api/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome })
+        });
+
+        const dados = await resposta.json();
+        document.getElementById("resposta").textContent = JSON.stringify(dados, null, 2);
+      } catch (erro) {
+        document.getElementById("resposta").textContent = "Erro: " + erro;
+      }
+    }
   </script>
 </body>
 </html>
