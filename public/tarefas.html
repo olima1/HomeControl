@@ -1,84 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <title>Minhas Tarefas</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 2em auto;
-            padding: 1em;
-        }
-
-        .container {
-            margin-bottom: 2em;
-        }
-
-        .task-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .task-list li {
-            padding: 1em;
-            border-bottom: 1px solid #ccc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .task-list li.completed {
-            text-decoration: line-through;
-            color: #888;
-        }
-
-        input[type="text"],
-        input[type="date"],
-        select {
-            padding: 0.5em;
-            margin-right: 1em;
-        }
-
-        button {
-            padding: 0.5em 1em;
-            cursor: pointer;
-        }
-
-        .create-form {
-            display: flex;
-            align-items: center;
-        }
-
-        .create-form>* {
-            margin-right: 1em;
-        }
-
-        .message {
-            padding: 1em;
-            border-radius: 4px;
-            margin-top: 1em;
-        }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
     <nav>
         <a href="tarefas.html">Minhas Tarefas</a> |
         <a href="shopping.html">Lista de Compras</a>
     </nav>
-    <hr>
+    
     <h1>Minhas Tarefas</h1>
 
     <div class="container">
@@ -100,7 +32,7 @@
         <h2>Tarefas Concluídas</h2>
         <ul id="completedTaskList" class="task-list"></ul>
     </div>
-
+    
     <div id="message" class="message hidden"></div>
 
     <script>
@@ -118,7 +50,7 @@
 
         async function fetchPendingTasks() {
             try {
-                const response = await fetch("/api/tasks");
+                const response = await fetch("/api/tasks.js");
                 if (response.ok) {
                     const tasks = await response.json();
                     renderTasks(tasks, pendingTaskList);
@@ -132,7 +64,7 @@
 
         async function fetchCompletedTasks() {
             try {
-                const response = await fetch("/api/completed-tasks");
+                const response = await fetch("/api/completed-tasks.js");
                 if (response.ok) {
                     const tasks = await response.json();
                     renderTasks(tasks, completedTaskList);
@@ -146,7 +78,7 @@
 
         async function loadUsersDropdown() {
             try {
-                const response = await fetch("/api/users");
+                const response = await fetch("/api/users.js");
                 if (response.ok) {
                     const { users } = await response.json();
                     taskAssigneeSelect.innerHTML = "";
@@ -169,7 +101,7 @@
             tasks.forEach(task => {
                 const li = document.createElement("li");
                 li.className = task.completed ? "completed" : "";
-
+                
                 let dueDate = "";
                 if (task.due_date) {
                     const date = new Date(task.due_date);
@@ -190,14 +122,14 @@
             });
         }
 
-        createTaskForm.addEventListener("submit", async function (event) {
+        createTaskForm.addEventListener("submit", async function(event) {
             event.preventDefault();
             const name = document.getElementById("taskName").value;
             const dueDate = document.getElementById("taskDueDate").value;
-            const assignee = taskAssigneeSelect.value;
+            const assignee = taskAssigneeSelect.value; 
 
             try {
-                const response = await fetch("/api/create-task", {
+                const response = await fetch("/api/create-task.js", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, dueDate, assignee })
@@ -218,7 +150,7 @@
 
         async function toggleTaskStatus(taskId, isCompleted) {
             try {
-                const response = await fetch("/api/update-task-status", {
+                const response = await fetch("/api/update-task-status.js", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ taskId, completed: isCompleted })
@@ -238,7 +170,7 @@
         async function deleteTask(taskId) {
             if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
             try {
-                const response = await fetch(`/api/delete-task?taskId=${taskId}`, {
+                const response = await fetch(`/api/delete-task.js?taskId=${taskId}`, {
                     method: "DELETE"
                 });
 
@@ -253,7 +185,7 @@
                 showMessage("Erro de conexão.", "error");
             }
         }
-
+        
         function showMessage(text, type) {
             messageElement.textContent = text;
             messageElement.className = `message ${type}`;
@@ -263,5 +195,4 @@
         }
     </script>
 </body>
-
 </html>

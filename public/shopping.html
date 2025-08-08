@@ -1,77 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <title>Lista de Compras Compartilhada</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 800px;
-            margin: 2em auto;
-            padding: 1em;
-        }
-
-        .container {
-            margin-bottom: 2em;
-        }
-
-        .shopping-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .shopping-list li {
-            padding: 1em;
-            border-bottom: 1px solid #ccc;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        input[type="text"] {
-            padding: 0.5em;
-            margin-right: 1em;
-        }
-
-        button {
-            padding: 0.5em 1em;
-            cursor: pointer;
-        }
-
-        .create-form {
-            display: flex;
-            align-items: center;
-        }
-
-        .create-form>* {
-            margin-right: 1em;
-        }
-
-        .message {
-            padding: 1em;
-            border-radius: 4px;
-            margin-top: 1em;
-        }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
     <nav>
         <a href="tarefas.html">Minhas Tarefas</a> |
         <a href="shopping.html">Lista de Compras</a>
     </nav>
-    <hr>
+
     <h1>Lista de Compras Compartilhada</h1>
 
     <div class="container">
@@ -87,7 +26,7 @@
         <h2>Itens da Lista</h2>
         <ul id="shoppingList" class="shopping-list"></ul>
     </div>
-
+    
     <div id="message" class="message hidden"></div>
 
     <script>
@@ -99,7 +38,7 @@
 
         async function fetchShoppingList() {
             try {
-                const response = await fetch("/api/shopping/list-items");
+                const response = await fetch("/api/shopping/list-items.js");
                 if (response.ok) {
                     const items = await response.json();
                     renderShoppingList(items);
@@ -115,26 +54,30 @@
             shoppingList.innerHTML = "";
             items.forEach(item => {
                 const li = document.createElement("li");
-
+                li.setAttribute('data-item-id', item.id);
+                
                 const quantityText = item.quantity ? ` (${item.quantity})` : '';
 
                 li.innerHTML = `
-                    <span>${item.item_name}${quantityText}</span>
-                    <div>
+                    <span class="item-display">
+                        <span class="item-name-text">${item.item_name}</span>
+                        <span class="item-quantity-text">${quantityText}</span>
+                    </span>
+                    <div class="item-actions">
                         <button onclick="deleteItem(${item.id})">Excluir</button>
                     </div>
                 `;
                 shoppingList.appendChild(li);
             });
-        }
+        }        
 
-        createItemForm.addEventListener("submit", async function (event) {
+        createItemForm.addEventListener("submit", async function(event) {
             event.preventDefault();
             const itemName = document.getElementById("itemName").value;
             const quantity = document.getElementById("quantity").value;
 
             try {
-                const response = await fetch("/api/shopping/add-item", {
+                const response = await fetch("/api/shopping/add-item.js", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ item_name: itemName, quantity: quantity })
@@ -156,7 +99,7 @@
         async function deleteItem(itemId) {
             if (!confirm("Tem certeza que deseja excluir este item?")) return;
             try {
-                const response = await fetch(`/api/shopping/delete-items?itemId=${itemId}`, {
+                const response = await fetch(`/api/shopping/delete-item.js?itemId=${itemId}`, {
                     method: "DELETE"
                 });
 
@@ -170,7 +113,7 @@
                 showMessage("Erro de conexão.", "error");
             }
         }
-
+        
         function showMessage(text, type) {
             messageElement.textContent = text;
             messageElement.className = `message ${type}`;
@@ -180,5 +123,4 @@
         }
     </script>
 </body>
-
 </html>
