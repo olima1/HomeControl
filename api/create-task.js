@@ -53,7 +53,7 @@ export default async function handler(req, res) {
                     from: process.env.EMAIL_USER,
                     to: assigneeEmail,
                     subject: `Nova Tarefa Atribuída: ${name}`,
-                    text: `Olá ${assignee}, uma nova tarefa foi atribuída a você: "${name}".\nData de Vencimento: ${dueDate || 'Não especificada'}.`
+                    text: `Fala ${assignee}, Não Grita: "${name}".\nData de Vencimento: ${dueDate || 'Não especificada'}.`
                 };
                 await transporter.sendMail(mailOptions);
                 console.log('E-mail de notificação enviado com sucesso!');
