@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Ufsuário</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2em auto; padding: 1em; }
+    input { display: block; width: 100%; margin-bottom: 1em; padding: 0.5em; box-sizing: border-box; }
+    button { padding: 0.75em 1.5em; cursor: pointer; }
+    pre { background: #eee; padding: 1em; border-radius: 4px; white-space: pre-wrap; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Cadastro de Usuário</h1>
+
+  <form id="cadastroForm">
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" placeholder="Digite o nome">
+
+    <label for="numero">Número:</label>
+    <input type="text" id="numero" placeholder="Digite o número">
+
+    <button type="submit">Salvar</button>
+  </form>
+
+  <pre id="resposta"></pre>
+
+  <script>
+    document.getElementById("cadastroForm").addEventListener("submit", async function(event) {
+      event.preventDefault(); // Impede o envio padrão do formulário
+
+      const nome = document.getElementById("nome").value.trim();
+      const numero = document.getElementById("numero").value.trim();
+
+      if (!nome || !numero) {
+        document.getElementById("resposta").textContent = "Por favor, preencha todos os campos.";
+        return;
+      }
+      
+      const respostaElement = document.getElementById("resposta");
+      respostaElement.textContent = "Salvando...";
+      respostaElement.className = "";
+
+      try {
+        const resposta = await fetch("/api/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, numero })
+        });
+
+        const dados = await resposta.json();
+        if (resposta.ok) {
+          respostaElement.textContent = JSON.stringify(dados, null, 2);
+          respostaElement.className = "success";
+        } else {
+          respostaElement.textContent = `Erro ${resposta.status}: ${JSON.stringify(dados, null, 2)}`;
+          respostaElement.className = "error";
+        }
+      } catch (erro) {
+        respostaElement.textContent = "Erro: " + erro;
+        respostaElement.className = "error";
+      }
+    });
+  </script>
+</body>
+</html>
