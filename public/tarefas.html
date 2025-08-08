@@ -33,37 +33,57 @@
 
     <div class="container">
         <h2>Tarefas Pendentes</h2>
-        <ul id="taskList" class="task-list"></ul>
+        <ul id="pendingTaskList" class="task-list"></ul>
+    </div>
+
+    <div class="container">
+        <h2>Tarefas Concluídas</h2>
+        <ul id="completedTaskList" class="task-list"></ul>
     </div>
     
     <div id="message" class="message hidden"></div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            fetchTasks();
             loadUsersDropdown();
+            fetchPendingTasks();
+            fetchCompletedTasks();
         });
 
         const createTaskForm = document.getElementById("createTaskForm");
-        const taskList = document.getElementById("taskList");
+        const pendingTaskList = document.getElementById("pendingTaskList");
+        const completedTaskList = document.getElementById("completedTaskList");
         const messageElement = document.getElementById("message");
         const taskAssigneeSelect = document.getElementById("taskAssigneeSelect");
 
-        async function fetchTasks() {
+        async function fetchPendingTasks() {
             try {
                 const response = await fetch("/api/tasks");
                 if (response.ok) {
                     const tasks = await response.json();
-                    renderTasks(tasks);
+                    renderTasks(tasks, pendingTaskList);
                 } else {
-                    showMessage("Erro ao carregar tarefas.", "error");
+                    showMessage("Erro ao carregar tarefas pendentes.", "error");
                 }
             } catch (error) {
                 showMessage("Erro de conexão com a API.", "error");
             }
         }
 
-        // NOVA FUNÇÃO PARA CARREGAR A LISTA SUSPENSA
+        async function fetchCompletedTasks() {
+            try {
+                const response = await fetch("/api/completed-tasks");
+                if (response.ok) {
+                    const tasks = await response.json();
+                    renderTasks(tasks, completedTaskList);
+                } else {
+                    showMessage("Erro ao carregar tarefas concluídas.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        }
+
         async function loadUsersDropdown() {
             try {
                 const response = await fetch("/api/users");
@@ -84,8 +104,8 @@
             }
         }
 
-        function renderTasks(tasks) {
-            taskList.innerHTML = "";
+        function renderTasks(tasks, listElement) {
+            listElement.innerHTML = "";
             tasks.forEach(task => {
                 const li = document.createElement("li");
                 li.className = task.completed ? "completed" : "";
@@ -106,7 +126,7 @@
                         <button onclick="deleteTask(${task.id})">Excluir</button>
                     </div>
                 `;
-                taskList.appendChild(li);
+                listElement.appendChild(li);
             });
         }
 
@@ -114,7 +134,6 @@
             event.preventDefault();
             const name = document.getElementById("taskName").value;
             const dueDate = document.getElementById("taskDueDate").value;
-            // Pega o valor do elemento select
             const assignee = taskAssigneeSelect.value; 
 
             try {
@@ -126,7 +145,7 @@
 
                 if (response.ok) {
                     createTaskForm.reset();
-                    fetchTasks();
+                    fetchPendingTasks();
                     showMessage("Tarefa criada com sucesso!", "success");
                 } else {
                     const error = await response.json();
@@ -146,7 +165,8 @@
                 });
 
                 if (response.ok) {
-                    fetchTasks();
+                    fetchPendingTasks();
+                    fetchCompletedTasks();
                 } else {
                     showMessage("Erro ao atualizar status.", "error");
                 }
@@ -163,7 +183,8 @@
                 });
 
                 if (response.ok) {
-                    fetchTasks();
+                    fetchPendingTasks();
+                    fetchCompletedTasks();
                     showMessage("Tarefa excluída com sucesso!", "success");
                 } else {
                     showMessage("Erro ao excluir tarefa.", "error");
