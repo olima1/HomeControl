@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Tarefas</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 1em; }
+        .container { margin-bottom: 2em; }
+        .task-list { list-style: none; padding: 0; }
+        .task-list li { padding: 1em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        .task-list li.completed { text-decoration: line-through; color: #888; }
+        input[type="text"], input[type="date"] { padding: 0.5em; margin-right: 1em; }
+        button { padding: 0.5em 1em; cursor: pointer; }
+        .create-form { display: flex; align-items: center; }
+        .create-form > * { margin-right: 1em; }
+        .message { padding: 1em; border-radius: 4px; margin-top: 1em; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Minhas Tarefas</h1>
+
+    <div class="container">
+        <h2>Criar Nova Tarefa</h2>
+        <form id="createTaskForm" class="create-form">
+            <input type="text" id="taskName" placeholder="Nome da Tarefa" required>
+            <input type="date" id="taskDueDate">
+            <input type="text" id="taskAssignee" placeholder="Concluída por">
+            <button type="submit">Criar</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Tarefas Pendentes</h2>
+        <ul id="taskList" class="task-list"></ul>
+    </div>
+    
+    <div id="message" class="message hidden"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", fetchTasks);
+
+        const createTaskForm = document.getElementById("createTaskForm");
+        const taskList = document.getElementById("taskList");
+        const messageElement = document.getElementById("message");
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch("/api/tasks");
+                if (response.ok) {
+                    const tasks = await response.json();
+                    renderTasks(tasks);
+                } else {
+                    showMessage("Erro ao carregar tarefas.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        }
+
+        function renderTasks(tasks) {
+            taskList.innerHTML = "";
+            tasks.forEach(task => {
+                const li = document.createElement("li");
+                li.className = task.completed ? "completed" : "";
+                
+                let dueDate = "";
+                if (task.due_date) {
+                    const date = new Date(task.due_date);
+                    dueDate = `(${date.toLocaleDateString()})`;
+                }
+
+                const assignee = task.assignee ? ` - para ${task.assignee}` : '';
+
+                li.innerHTML = `
+                    <span>${task.name} ${dueDate} ${assignee}</span>
+                    <div>
+                        <input type="checkbox" ${task.completed ? "checked" : ""} 
+                               onclick="toggleTaskStatus(${task.id}, this.checked)">
+                        <button onclick="deleteTask(${task.id})">Excluir</button>
+                    </div>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        createTaskForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const name = document.getElementById("taskName").value;
+            const dueDate = document.getElementById("taskDueDate").value;
+            const assignee = document.getElementById("taskAssignee").value;
+
+            try {
+                const response = await fetch("/api/create-task", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, dueDate, assignee })
+                });
+
+                if (response.ok) {
+                    createTaskForm.reset();
+                    fetchTasks(); // Recarrega a lista de tarefas
+                    showMessage("Tarefa criada com sucesso!", "success");
+                } else {
+                    const error = await response.json();
+                    showMessage(`Erro ao criar tarefa: ${error.error}`, "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        });
+
+        async function toggleTaskStatus(taskId, isCompleted) {
+            try {
+                const response = await fetch("/api/update-task-status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ taskId, completed: isCompleted })
+                });
+
+                if (response.ok) {
+                    fetchTasks();
+                } else {
+                    showMessage("Erro ao atualizar status.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão.", "error");
+            }
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm("Tem certeza que deseja excluir esta tarefa?")) return;
+            try {
+                const response = await fetch(`/api/delete-task?taskId=${taskId}`, {
+                    method: "DELETE"
+                });
+
+                if (response.ok) {
+                    fetchTasks();
+                    showMessage("Tarefa excluída com sucesso!", "success");
+                } else {
+                    showMessage("Erro ao excluir tarefa.", "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão.", "error");
+            }
+        }
+        
+        function showMessage(text, type) {
+            messageElement.textContent = text;
+            messageElement.className = `message ${type}`;
+            setTimeout(() => {
+                messageElement.classList.add("hidden");
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

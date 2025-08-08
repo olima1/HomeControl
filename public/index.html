@@ -105,18 +105,19 @@
 
             respostaElement.textContent = "Autenticando...";
             try {
-                const resposta = await fetch("/api/login", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ username, password })
-                });
-                const dados = await resposta.json();
-                if (resposta.ok) {
-                    respostaElement.textContent = `Sucesso: ${dados.message}`;
-                    respostaElement.className = "success";
-                    // Aqui você faria o redirecionamento para a página do usuário
-                    // window.location.href = "/dashboard"; 
-                } else {
+              const resposta = await fetch("/api/login", {
+                  // ... (código existente) ...
+              });
+              const dados = await resposta.json();
+              if (resposta.ok) {
+                  respostaElement.textContent = `Sucesso: ${dados.message}`;
+                  respostaElement.className = "success";
+                  
+                  // REDIRECIONAMENTO!
+                  if (dados.redirectUrl) {
+                      window.location.href = dados.redirectUrl;
+                  }
+              } else {
                     respostaElement.textContent = `Erro: ${dados.error}`;
                     respostaElement.className = "error";
                 }

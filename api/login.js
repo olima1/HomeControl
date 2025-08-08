@@ -36,10 +36,11 @@ export default async function handler(req, res) {
         await client.end();
 
         if (match) {
-            // Senha correta!
-            // Para um projeto real, aqui você criaria um token de sessão (JWT)
-            // e o retornaria para o frontend.
-            res.status(200).json({ message: 'Login bem-sucedido!' });
+            // Login bem-sucedido.
+            // Redireciona o usuário para a página de tarefas.
+            // IMPORTANTE: Em uma aplicação real, isso seria feito com tokens de sessão.
+            // Aqui, para simplificar, vamos retornar uma URL.
+            res.status(200).json({ message: 'Login bem-sucedido!', redirectUrl: '/tarefas.html' });
         } else {
             // Senha incorreta
             res.status(401).json({ error: 'Credenciais inválidas.' });
