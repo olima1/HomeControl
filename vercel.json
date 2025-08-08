@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/delete-old-completed-tasks",
-      "schedule": "@daily"
+      "schedule": "0 0 * * *"
     }
   ]
 }
