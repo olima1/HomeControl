@@ -1,24 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Minhas Tarefas</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 2em auto; padding: 1em; }
-        .container { margin-bottom: 2em; }
-        .task-list { list-style: none; padding: 0; }
-        .task-list li { padding: 1em; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-        .task-list li.completed { text-decoration: line-through; color: #888; }
-        input[type="text"], input[type="date"], select { padding: 0.5em; margin-right: 1em; }
-        button { padding: 0.5em 1em; cursor: pointer; }
-        .create-form { display: flex; align-items: center; }
-        .create-form > * { margin-right: 1em; }
-        .message { padding: 1em; border-radius: 4px; margin-top: 1em; }
-        .success { background-color: #d4edda; color: #155724; }
-        .error { background-color: #f8d7da; color: #721c24; }
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 2em auto;
+            padding: 1em;
+        }
+
+        .container {
+            margin-bottom: 2em;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .task-list li {
+            padding: 1em;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list li.completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select {
+            padding: 0.5em;
+            margin-right: 1em;
+        }
+
+        button {
+            padding: 0.5em 1em;
+            cursor: pointer;
+        }
+
+        .create-form {
+            display: flex;
+            align-items: center;
+        }
+
+        .create-form>* {
+            margin-right: 1em;
+        }
+
+        .message {
+            padding: 1em;
+            border-radius: 4px;
+            margin-top: 1em;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
     </style>
 </head>
+
 <body>
+    <nav>
+        <a href="tarefas.html">Minhas Tarefas</a> |
+        <a href="lista-de-compras.html">Lista de Compras</a>
+    </nav>
+    <hr>
     <h1>Minhas Tarefas</h1>
 
     <div class="container">
@@ -40,7 +100,7 @@
         <h2>Tarefas Concluídas</h2>
         <ul id="completedTaskList" class="task-list"></ul>
     </div>
-    
+
     <div id="message" class="message hidden"></div>
 
     <script>
@@ -109,7 +169,7 @@
             tasks.forEach(task => {
                 const li = document.createElement("li");
                 li.className = task.completed ? "completed" : "";
-                
+
                 let dueDate = "";
                 if (task.due_date) {
                     const date = new Date(task.due_date);
@@ -130,11 +190,11 @@
             });
         }
 
-        createTaskForm.addEventListener("submit", async function(event) {
+        createTaskForm.addEventListener("submit", async function (event) {
             event.preventDefault();
             const name = document.getElementById("taskName").value;
             const dueDate = document.getElementById("taskDueDate").value;
-            const assignee = taskAssigneeSelect.value; 
+            const assignee = taskAssigneeSelect.value;
 
             try {
                 const response = await fetch("/api/create-task", {
@@ -193,7 +253,7 @@
                 showMessage("Erro de conexão.", "error");
             }
         }
-        
+
         function showMessage(text, type) {
             messageElement.textContent = text;
             messageElement.className = `message ${type}`;
@@ -203,4 +263,5 @@
         }
     </script>
 </body>
+
 </html>
