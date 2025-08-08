@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Lista de Compras Compartilhada</title>
-    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Estilo para a imagem extra */
+        #paiaImageContainer {
+            text-align: center;
+            margin-top: 1em;
+            display: none; /* Inicia oculto */
+        }
+        #paiaImageContainer img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -20,6 +34,10 @@
             <input type="text" id="quantity" placeholder="Quantidade (opcional)">
             <button type="submit">Adicionar</button>
         </form>
+        
+        <div id="paiaImageContainer">
+            <img src="/public/paia.png" alt="Imagem paia">
+        </div>
     </div>
 
     <div class="container">
@@ -35,6 +53,20 @@
         const createItemForm = document.getElementById("createItemForm");
         const shoppingList = document.getElementById("shoppingList");
         const messageElement = document.getElementById("message");
+        
+        // Novos elementos para a condição
+        const itemNameInput = document.getElementById("itemName");
+        const paiaImageContainer = document.getElementById("paiaImageContainer");
+
+        // Condição: exibe a imagem se digitar "paia"
+        itemNameInput.addEventListener('input', () => {
+            const inputValue = itemNameInput.value.toLowerCase();
+            if (inputValue.includes('paia')) {
+                paiaImageContainer.style.display = 'block';
+            } else {
+                paiaImageContainer.style.display = 'none';
+            }
+        });
 
         async function fetchShoppingList() {
             try {
@@ -64,17 +96,69 @@
                         <span class="item-quantity-text">${quantityText}</span>
                     </span>
                     <div class="item-actions">
+                        <button onclick="editItem(${item.id}, '${item.item_name}', '${item.quantity}')">Editar</button>
                         <button onclick="deleteItem(${item.id})">Excluir</button>
                     </div>
                 `;
                 shoppingList.appendChild(li);
             });
-        }        
+        }
+        
+        async function editItem(itemId, itemName, itemQuantity) {
+            const li = document.querySelector(`li[data-item-id='${itemId}']`);
+            if (!li) return;
 
+            li.innerHTML = `
+                <div class="item-edit-form">
+                    <input type="text" class="edit-item-name" value="${itemName}" required>
+                    <input type="text" class="edit-item-quantity" value="${itemQuantity || ''}">
+                </div>
+                <div class="item-actions">
+                    <button onclick="saveEditedItem(${itemId})">Salvar</button>
+                    <button onclick="fetchShoppingList()">Cancelar</button>
+                </div>
+            `;
+        }
+        
+        async function saveEditedItem(itemId) {
+            const li = document.querySelector(`li[data-item-id='${itemId}']`);
+            const itemName = li.querySelector('.edit-item-name').value;
+            const itemQuantity = li.querySelector('.edit-item-quantity').value;
+
+            if (!itemName) {
+                showMessage("O nome do item não pode ser vazio.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/shopping/update-item.js", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ itemId, item_name: itemName, quantity: itemQuantity })
+                });
+
+                if (response.ok) {
+                    fetchShoppingList();
+                    showMessage("Item atualizado com sucesso!", "success");
+                } else {
+                    const error = await response.json();
+                    showMessage(`Erro ao atualizar item: ${error.error}`, "error");
+                }
+            } catch (error) {
+                showMessage("Erro de conexão com a API.", "error");
+            }
+        }
+        
         createItemForm.addEventListener("submit", async function(event) {
             event.preventDefault();
             const itemName = document.getElementById("itemName").value;
             const quantity = document.getElementById("quantity").value;
+
+            // Condição para não adicionar item "paia"
+            if (itemName.toLowerCase().includes('paia')) {
+                showMessage("Não é possível adicionar um item 'paia'.", "error");
+                return; 
+            }
 
             try {
                 const response = await fetch("/api/shopping/add-item.js", {
